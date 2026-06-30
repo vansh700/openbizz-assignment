@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: openbizz-db
+    restart: always
+    environment:
+      POSTGRES_USER: udyam_user
+      POSTGRES_PASSWORD: udyam_password
+      POSTGRES_DB: udyam_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: openbizz-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://udyam_user:udyam_password@postgres:5432/udyam_db?schema=public
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:

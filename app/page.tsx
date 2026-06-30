@@ -1,103 +1,164 @@
-import Image from "next/image";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import { useState, useEffect } from "react";
+import formSchema from "@/scraped/schema.json";
+import ProgressIndicator from "@/components/ProgressIndicator";
+import AadhaarStep from "@/components/AadhaarStep";
+import PanStep from "@/components/PanStep";
+import SuccessStep from "@/components/SuccessStep";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { ShieldCheck, Info } from "lucide-react";
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+export default function RegisterPage() {
+  const [isClient, setIsClient] = useState(false);
+
+  // Dynamic step persistence
+  const [currentStep, setCurrentStep] = useLocalStorage<number>("udyam_current_step", 1);
+  
+  // Persisted state values
+  const [aadhaarData, setAadhaarData] = useLocalStorage("udyam_aadhaar_data", {
+    aadhaarNumber: "",
+    entrepreneurName: "",
+    declarationConsent: false,
+  });
+
+  const [panData, setPanData] = useLocalStorage("udyam_pan_data", {
+    panNumber: "",
+    panType: "",
+    pinCode: "",
+    district: "",
+    state: "",
+  });
+
+  const [submissionResult, setSubmissionResult] = useLocalStorage<any>("udyam_submission_result", null);
+
+  // Wait until mounted on client to prevent hydration mismatch since we rely on localStorage
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    // Show a sleek skeleton spinner during hydration
+    return (
+      <div className="flex-1 flex items-center justify-center bg-background py-20">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          <p className="text-sm font-medium text-muted-foreground">Loading Portal...</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+    );
+  }
+
+  // Schema mappings
+  const aadhaarSchema = formSchema.steps[0];
+  const otpSchema = formSchema.steps[1];
+  const panSchema = formSchema.steps[2];
+
+  const handleAadhaarVerified = (aadhaar: string, name: string) => {
+    setAadhaarData((prev) => ({
+      ...prev,
+      aadhaarNumber: aadhaar,
+      entrepreneurName: name,
+    }));
+    setCurrentStep(2);
+  };
+
+  const handlePanValidated = (result: any) => {
+    setSubmissionResult(result);
+    setCurrentStep(3);
+  };
+
+  const handleReset = () => {
+    // Clear state
+    setAadhaarData({
+      aadhaarNumber: "",
+      entrepreneurName: "",
+      declarationConsent: false,
+    });
+    setPanData({
+      panNumber: "",
+      panType: "",
+      pinCode: "",
+      district: "",
+      state: "",
+    });
+    setSubmissionResult(null);
+    setCurrentStep(1);
+    
+    // Clear localStorage explicitly
+    window.localStorage.removeItem("udyam_current_step");
+    window.localStorage.removeItem("udyam_aadhaar_data");
+    window.localStorage.removeItem("udyam_pan_data");
+    window.localStorage.removeItem("udyam_submission_result");
+  };
+
+  return (
+    <div className="flex-1 bg-gradient-to-b from-background via-secondary/10 to-background py-8 px-4 sm:px-6 transition-colors duration-300">
+      <div className="mx-auto max-w-xl">
+        
+        {/* Government Portal Header Alert Banner */}
+        <div className="mb-6 flex items-start gap-3 rounded-lg border border-saffron/20 bg-saffron/5 p-3.5 text-xs text-foreground/90">
+          <Info className="h-4.5 w-4.5 text-saffron shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold text-saffron">Udyam Verification Portal Replica</p>
+            <p className="mt-0.5 text-muted-foreground leading-normal">
+              This is a development sandbox demonstrating digital identity verification workflows. Never enter actual password credentials or sensitive government details.
+            </p>
+          </div>
+        </div>
+
+        {/* Wizard Panel Container */}
+        <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xl dark:shadow-2xl transition-all duration-300 relative overflow-hidden">
+          
+          {/* Saffron, White, Emerald Header stripe */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-saffron via-border to-emerald" />
+
+          {/* Steps Progress Bar */}
+          <div className="mb-6">
+            <ProgressIndicator currentStep={currentStep} />
+          </div>
+
+          {/* Step Render Area */}
+          <div className="mt-4">
+            {currentStep === 1 && (
+              <AadhaarStep
+                aadhaarSchema={aadhaarSchema as any}
+                otpSchema={otpSchema as any}
+                onSuccess={handleAadhaarVerified}
+                savedData={aadhaarData}
+                setSavedData={setAadhaarData}
+              />
+            )}
+
+            {currentStep === 2 && (
+              <PanStep
+                panSchema={panSchema as any}
+                aadhaarNumber={aadhaarData.aadhaarNumber}
+                entrepreneurName={aadhaarData.entrepreneurName}
+                onSuccess={handlePanValidated}
+                onBack={() => setCurrentStep(1)}
+                savedData={panData}
+                setSavedData={setPanData}
+              />
+            )}
+
+            {currentStep === 3 && submissionResult && (
+              <SuccessStep
+                data={submissionResult.data}
+                dbSaved={submissionResult.dbSaved}
+                onReset={handleReset}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Security Trust Indicator */}
+        <div className="mt-6 flex items-center justify-center gap-2 text-[10px] text-muted-foreground font-semibold">
+          <ShieldCheck className="h-3.5 w-3.5 text-emerald" />
+          <span>Secured with standard 256-bit encryption mock checks</span>
+        </div>
+      </div>
     </div>
   );
 }

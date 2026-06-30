@@ -1,0 +1,144 @@
+{
+  "title": "Udyam Registration Portal",
+  "steps": [
+    {
+      "id": "aadhaar-step",
+      "stepNumber": 1,
+      "title": "Aadhaar Verification",
+      "description": "Enter Aadhaar and Entrepreneur Name to validate identity and generate OTP",
+      "fields": [
+        {
+          "name": "aadhaarNumber",
+          "label": "Aadhaar Number / आधार संख्या",
+          "type": "text",
+          "placeholder": "12-Digit Aadhaar Number (e.g. 123456789012)",
+          "required": true,
+          "validation": {
+            "pattern": "^\\d{12}$",
+            "message": "Aadhaar Number must be exactly 12 numeric digits."
+          }
+        },
+        {
+          "name": "entrepreneurName",
+          "label": "Name of Entrepreneur / उद्यमी का नाम",
+          "type": "text",
+          "placeholder": "Name exactly as printed on Aadhaar Card",
+          "required": true,
+          "validation": {
+            "minLength": 3,
+            "maxLength": 100,
+            "message": "Entrepreneur Name must be between 3 and 100 characters."
+          }
+        },
+        {
+          "name": "declarationConsent",
+          "label": "Declaration & Consent",
+          "type": "checkbox",
+          "description": "I, the holder of Aadhaar number, hereby give my consent to Ministry of Micro, Small and Medium Enterprises, Government of India for using my Aadhaar number and details for Udyam Registration and verification purposes.",
+          "required": true,
+          "validation": {
+            "requiredValue": true,
+            "message": "You must check the box to declare consent before proceeding."
+          }
+        }
+      ],
+      "actionButton": {
+        "label": "Validate & Generate OTP / सत्यापित करें और ओटीपी उत्पन्न करें",
+        "submittingLabel": "Generating OTP..."
+      }
+    },
+    {
+      "id": "otp-step",
+      "stepNumber": 1.5,
+      "title": "OTP Verification",
+      "description": "An OTP has been sent to your mobile number registered with Aadhaar",
+      "fields": [
+        {
+          "name": "otp",
+          "label": "One Time Password (OTP) / वन टाइम पासवर्ड",
+          "type": "text",
+          "placeholder": "Enter 6-Digit OTP",
+          "required": true,
+          "validation": {
+            "pattern": "^\\d{6}$",
+            "message": "OTP must be exactly 6 numeric digits."
+          }
+        }
+      ],
+      "actionButton": {
+        "label": "Validate OTP / ओटीपी सत्यापित करें",
+        "submittingLabel": "Validating OTP..."
+      }
+    },
+    {
+      "id": "pan-step",
+      "stepNumber": 2,
+      "title": "PAN Verification",
+      "description": "Validate your Permanent Account Number (PAN) and select organization type",
+      "fields": [
+        {
+          "name": "panType",
+          "label": "Type of Organisation / संगठन का प्रकार",
+          "type": "select",
+          "placeholder": "Select Organisation Type",
+          "required": true,
+          "options": [
+            { "label": "Proprietorship / एकल स्वामित्व", "value": "PROPRIETORSHIP" },
+            { "label": "Partnership / साझेदारी", "value": "PARTNERSHIP" },
+            { "label": "Hindu Undivided Family (HUF) / हिंदू अविभाजित परिवार", "value": "HUF" },
+            { "label": "Private Limited Company / प्राइवेट लिमिटेड कंपनी", "value": "PRIVATE_LIMITED" },
+            { "label": "Public Limited Company / पब्लिक लिमिटेड कंपनी", "value": "PUBLIC_LIMITED" },
+            { "label": "Co-Operative Society / सहकारी समिति", "value": "COOPERATIVE" },
+            { "label": "Limited Liability Partnership (LLP) / सीमित देयता भागीदारी", "value": "LLP" },
+            { "label": "Society / Trust (सोसाइटी / ट्रस्ट)", "value": "TRUST" }
+          ],
+          "validation": {
+            "message": "Please select the Type of Organisation."
+          }
+        },
+        {
+          "name": "panNumber",
+          "label": "Permanent Account Number (PAN) / स्थायी खाता संख्या (पैन)",
+          "type": "text",
+          "placeholder": "Enter 10-Character PAN (e.g. ABCDE1234F)",
+          "required": true,
+          "validation": {
+            "pattern": "^[A-Z]{5}[0-9]{4}[A-Z]{1}$",
+            "message": "PAN must match format [A-Z]{5}[0-9]{4}[A-Z]{1}."
+          }
+        },
+        {
+          "name": "pinCode",
+          "label": "Pin Code / पिन कोड (Bonus City/State Autofill)",
+          "type": "text",
+          "placeholder": "Enter 6-digit Area Pin Code (e.g. 110001)",
+          "required": true,
+          "validation": {
+            "pattern": "^\\d{6}$",
+            "message": "Pin Code must be exactly 6 numeric digits."
+          }
+        },
+        {
+          "name": "district",
+          "label": "District / City / जिला",
+          "type": "text",
+          "placeholder": "District (Auto-filled from PIN Code)",
+          "required": true,
+          "disabled": true
+        },
+        {
+          "name": "state",
+          "label": "State / राज्य",
+          "type": "text",
+          "placeholder": "State (Auto-filled from PIN Code)",
+          "required": true,
+          "disabled": true
+        }
+      ],
+      "actionButton": {
+        "label": "Validate PAN & Submit / पैन सत्यापित करें और जमा करें",
+        "submittingLabel": "Validating & Submitting..."
+      }
+    }
+  ]
+}
