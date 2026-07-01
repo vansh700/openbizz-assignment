@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { otpStore, submissionsStore } from "@/services/mockStore";
 import { prisma, dbConnected } from "@/lib/prisma";
+import { cookies } from "next/headers";
 
 const submitSchema = z.object({
   aadhaarNumber: z
@@ -49,7 +50,22 @@ export async function POST(request: Request) {
 
     // 1. Confirm Aadhaar verification
     const storedOtp = otpStore.get(aadhaarNumber);
-    if (!storedOtp || !storedOtp.verified) {
+
+    // Cookie fallback for serverless environments (e.g. Vercel)
+    let sessionData: { aadhaarNumber: string; entrepreneurName: string } | null = null;
+    try {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get("aadhaar_session")?.value;
+      if (sessionCookie) {
+        sessionData = JSON.parse(sessionCookie);
+      }
+    } catch (e) {
+      console.warn("Failed to parse aadhaar_session cookie:", e);
+    }
+
+    const isVerified = (storedOtp && storedOtp.verified) || (sessionData && sessionData.aadhaarNumber === aadhaarNumber);
+
+    if (!isVerified) {
       return NextResponse.json(
         { success: false, error: "Aadhaar OTP verification is required to submit this registration." },
         { status: 400 }
@@ -96,6 +112,12 @@ export async function POST(request: Request) {
 
     // 3. Clear OTP verification cache to avoid replay
     otpStore.delete(aadhaarNumber);
+    try {
+      const cookieStore = await cookies();
+      cookieStore.delete("aadhaar_session");
+    } catch (e) {
+      console.warn("Failed to clear aadhaar_session cookie:", e);
+    }
 
     console.log(`[Submission Success] ID: ${finalSubmission.id}, DB Saved: ${savedInDb}`);
 

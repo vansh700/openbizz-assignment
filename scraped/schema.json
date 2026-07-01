@@ -90,7 +90,9 @@
             { "label": "Public Limited Company / पब्लिक लिमिटेड कंपनी", "value": "PUBLIC_LIMITED" },
             { "label": "Co-Operative Society / सहकारी समिति", "value": "COOPERATIVE" },
             { "label": "Limited Liability Partnership (LLP) / सीमित देयता भागीदारी", "value": "LLP" },
-            { "label": "Society / Trust (सोसाइटी / ट्रस्ट)", "value": "TRUST" }
+            { "label": "Society / Trust (सोसाइटी / ट्रस्ट)", "value": "TRUST" },
+            { "label": "Self-Help Group / स्वयं सहायता समूह", "value": "SELF_HELP_GROUP" },
+            { "label": "Others / अन्य", "value": "OTHERS" }
           ],
           "validation": {
             "message": "Please select the Type of Organisation."

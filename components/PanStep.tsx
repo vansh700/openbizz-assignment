@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -70,6 +70,8 @@ export default function PanStep({
       "COOPERATIVE",
       "LLP",
       "TRUST",
+      "SELF_HELP_GROUP",
+      "OTHERS",
     ]),
     panNumber: z
       .string()
@@ -104,9 +106,12 @@ export default function PanStep({
   const panValue = watch("panNumber");
   const panTypeValue = watch("panType");
 
+  const lastFetchedPin = useRef<string | null>(null);
+
   // Effect to lookup PIN Code details
   useEffect(() => {
-    if (pinCodeValue && /^\d{6}$/.test(pinCodeValue)) {
+    if (pinCodeValue && /^\d{6}$/.test(pinCodeValue) && pinCodeValue !== lastFetchedPin.current) {
+      lastFetchedPin.current = pinCodeValue;
       const fetchPinDetails = async () => {
         setPinLoading(true);
         setApiError(null);

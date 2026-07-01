@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { otpStore } from "@/services/mockStore";
+import { cookies } from "next/headers";
 
 const verifyOtpSchema = z.object({
   aadhaarNumber: z
@@ -51,6 +52,21 @@ export async function POST(request: Request) {
     // Set verified flag to true
     stored.verified = true;
     otpStore.set(aadhaarNumber, stored);
+
+    try {
+      const cookieStore = await cookies();
+      cookieStore.set("aadhaar_session", JSON.stringify({
+        aadhaarNumber,
+        entrepreneurName: stored.entrepreneurName,
+      }), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 15 * 60, // 15 minutes
+        path: "/",
+      });
+    } catch (cookieError) {
+      console.warn("Failed to set aadhaar_session cookie:", cookieError);
+    }
 
     console.log(`[OTP Verified] Aadhaar: ${aadhaarNumber} successfully authenticated.`);
 
